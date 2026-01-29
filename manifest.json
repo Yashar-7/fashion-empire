@@ -1,0 +1,21 @@
+{
+  "name": "The Fashion Empire",
+  "short_name": "FashionEmpire",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#630d16",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "fashion.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "fashion.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

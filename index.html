@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#630d16">
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="fashion.png">
+    <title>The Fashion Empire - POS</title>
+    
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { 
+            --burgundy: #630d16; 
+            --oro: #d4af37;
+            --chrome: #e0e0e0;   
+            --dark-gray: #1a1a1b;     
+            --black-bg: #0d0d0d;    
+            --card-inner: #222222;
+            --glass-shine: rgba(255, 255, 255, 0.1);
+        }
+        
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            background: #2a2a2a; 
+            color: var(--chrome); 
+            margin: 0; padding: 10px;
+            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--black-bg);
+            border-radius: 30px;
+            border: 4px solid #333;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+            overflow: hidden;
+            display: flex; flex-direction: column;
+            position: relative; /* Para el botón flotante relativo al contenedor si prefieres */
+        }
+
+        header { 
+            background: linear-gradient(180deg, var(--burgundy) 0%, #30060a 100%);
+            padding: 30px 20px;
+            margin: 15px;
+            border-radius: 20px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5), inset 0 2px 10px var(--glass-shine);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        header::after {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+            border-radius: 20px 20px 0 0; pointer-events: none;
+        }
+
+        .logo-img { width: 85%; max-width: 250px; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.8)); }
+
+        .content { padding: 0 15px 15px 15px; flex-grow: 1; overflow-y: auto; max-height: 60vh; }
+        
+        .section-label { 
+            font-size: 0.7rem; color: #888; text-transform: uppercase; 
+            letter-spacing: 2px; margin: 15px 0 8px 5px; font-weight: 700;
+        }
+
+        .search-box { background: var(--dark-gray); padding: 12px; border-radius: 15px; border: 1px solid #333; }
+        
+        .btn-scan { 
+            width: 100%; padding: 12px; background: linear-gradient(180deg, #333, #111);
+            border: 1px solid #444; border-radius: 10px; color: white;
+            font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+            text-transform: uppercase; font-size: 0.8rem; margin-bottom: 12px;
+        }
+
+        #busc_venta { 
+            width: 100%; padding: 15px; background: #000; border: 1px solid #444; 
+            color: white; border-radius: 8px; font-size: 1rem; box-sizing: border-box;
+        }
+
+        .cart-item { 
+            background: var(--dark-gray); padding: 12px; border-radius: 12px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-left: 5px solid var(--burgundy);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            margin-bottom: 8px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .footer-payment { 
+            background: #111; padding: 20px; border-top: 2px solid var(--burgundy);
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+        }
+
+        .payment-info { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px; }
+        .total-price { font-size: 2rem; font-weight: 700; color: white; display: block; }
+        
+        .discount-box { margin-bottom: 15px; border-top: 1px solid #333; padding-top: 10px; }
+        .discount-input { width: 100%; padding: 10px; background: #000; color: var(--oro); border: 1px solid #444; border-radius: 8px; font-weight: bold; }
+
+        select { background: #222; color: white; border: 1px solid #444; padding: 10px; border-radius: 8px; }
+
+        .btn-finish { 
+            width: 100%; padding: 18px; background: linear-gradient(180deg, var(--burgundy), #42080e);
+            border: none; border-radius: 12px; color: white; font-weight: bold;
+            font-size: 1rem; text-transform: uppercase; cursor: pointer;
+            box-shadow: 0 5px 15px rgba(99, 13, 22, 0.4);
+        }
+
+        #reader { width: 100%; border-radius: 10px; margin-bottom: 10px; display: none; overflow: hidden; }
+
+        .btn-admin-float {
+            position: fixed; bottom: 100px; right: 20px; 
+            background: #1a1a1a; color: #d4af37; 
+            width: 55px; height: 55px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 1.4rem; text-decoration: none; border: 2px solid #d4af37;
+            box-shadow: 0px 4px 15px rgba(0,0,0,0.6); z-index: 1000;
+            transition: transform 0.2s;
+        }
+        .btn-admin-float:active { transform: scale(0.9); }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <img src="fashion.png" alt="The Fashion Empire" class="logo-img">
+        </header>
+
+        <div class="content">
+            <p class="section-label">Herramientas de Venta</p>
+            <div class="search-box">
+                <button class="btn-scan" onclick="toggleScanner()">📷 Abrir Escáner de Código</button>
+                <div id="reader"></div>
+                <input type="text" id="busc_venta" placeholder="Buscar producto..." onkeyup="buscar(this.value)">
+                <div id="resultados" style="background: #111; border-radius: 0 0 8px 8px;"></div>
+            </div>
+
+            <p class="section-label">Carrito de Selección</p>
+            <div id="lista_carrito">
+                <p style="text-align: center; color: #555; font-size: 0.9rem;">Esperando selección...</p>
+            </div>
+        </div>
+
+        <div class="footer-payment">
+            <div class="discount-box">
+                <label style="font-size: 0.7rem; color: var(--oro); font-weight: bold;">🎟️ DESCUENTO VIP ($)</label>
+                <input type="number" id="descuento_valor" class="discount-input" placeholder="0" oninput="render()">
+            </div>
+            <div class="payment-info">
+                <div>
+                    <span style="color: var(--burgundy); font-weight: bold; font-size: 0.8rem;">TOTAL FINAL</span>
+                    <span id="total_venta" class="total-price">$0</span>
+                </div>
+                <select id="metodo_pago">
+                    <option value="Efectivo">💵 Efectivo</option>
+                    <option value="Transferencia">📱 Transf.</option>
+                    <option value="Tarjeta">💳 Tarjeta</option>
+                </select>
+            </div>
+            <button class="btn-finish" onclick="finalizarVenta()">Finalizar Venta</button>
+        </div>
+    </div>
+
+    <a href="admin.html" class="btn-admin-float">📦</a>
+
+<script>
+    const SB_URL = "https://svpurpvbiujhcbiugrkh.supabase.co";
+    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN2cHVycHZiaXVqaGNiaXVncmtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3NDgzMTUsImV4cCI6MjA4MzMyNDMxNX0.AivKJ0_N0z_4T4vLNfUcE2hepJ1XXOO8-4fSA3PJXdc";
+    const _supabase = supabase.createClient(SB_URL, SB_KEY);
+
+    let carrito = [];
+    let db_local = [];
+    const scanner = new Html5Qrcode("reader");
+
+    async function iniciar() {
+        const { data } = await _supabase.from('productos_boutique').select('*').gt('stock', 0);
+        db_local = data || [];
+    }
+
+    function toggleScanner() {
+        const r = document.getElementById("reader");
+        if (r.style.display === "none" || r.style.display === "") {
+            r.style.display = "block";
+            scanner.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (text) => {
+                new Audio('https://www.soundjay.com/buttons/beep-01a.mp3').play();
+                agregar(text);
+                pararScanner();
+            });
+        } else { pararScanner(); }
+    }
+
+    function pararScanner() {
+        if(scanner.isScanning) scanner.stop();
+        document.getElementById("reader").style.display = "none";
+    }
+
+    function buscar(q) {
+        const res = document.getElementById('resultados');
+        res.innerHTML = "";
+        if (q.length < 2) return;
+        const filtrados = db_local.filter(p => p.nombre.toLowerCase().includes(q.toLowerCase()) || p.codigo_barras.includes(q));
+        filtrados.forEach(p => {
+            const d = document.createElement('div');
+            d.style = "padding:12px; border-bottom:1px solid #333; cursor:pointer; color:white;";
+            d.innerHTML = `<strong>${p.nombre}</strong> <small style="color:var(--oro)">${p.talle}</small> | $${p.precio_venta.toLocaleString()}`;
+            d.onclick = () => { 
+                agregar(p.codigo_barras);
+                document.getElementById('busc_venta').blur(); // Bajar teclado
+            };
+            res.appendChild(d);
+        });
+    }
+
+    function agregar(cod) {
+        const p = db_local.find(i => i.codigo_barras === cod);
+        if (!p) return;
+
+        const existe = carrito.find(c => c.codigo_barras === cod);
+        if (existe) {
+            if (existe.cantidad < p.stock) existe.cantidad++;
+            else Swal.fire({ title: "Sin Stock", icon: "warning", background: "#0a0a0a", color: "#fff" });
+        } else {
+            carrito.push({ ...p, cantidad: 1 });
+        }
+        document.getElementById('resultados').innerHTML = "";
+        document.getElementById('busc_venta').value = "";
+        render();
+    }
+
+    function cambiarCantidad(index, delta) {
+        const item = carrito[index];
+        const prodOriginal = db_local.find(p => p.codigo_barras === item.codigo_barras);
+        const nuevaCant = item.cantidad + delta;
+
+        if (nuevaCant < 1) carrito.splice(index, 1);
+        else if (nuevaCant <= prodOriginal.stock) item.cantidad = nuevaCant;
+        else Swal.fire({ title: "Límite de stock", icon: "info", background: "#0a0a0a", color: "#fff" });
+        
+        render();
+    }
+
+    function render() {
+        const cont = document.getElementById('lista_carrito');
+        cont.innerHTML = "";
+        let subtotal = 0;
+
+        if (carrito.length === 0) {
+            cont.innerHTML = '<p style="text-align: center; color: #555; font-size: 0.9rem;">Esperando selección...</p>';
+        }
+
+        carrito.forEach((it, i) => {
+            subtotal += (it.precio_venta * it.cantidad);
+            cont.innerHTML += `
+                <div class="cart-item">
+                    <div style="flex-grow: 1;">
+                        <strong style="color:white; font-size: 0.85rem;">${it.nombre}</strong><br>
+                        <small style="color: var(--oro)">$${it.precio_venta.toLocaleString()}</small>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; background: #000; padding: 5px 8px; border-radius: 8px; border: 1px solid #333; margin: 0 10px;">
+                        <button onclick="cambiarCantidad(${i}, -1)" style="background:none; border:none; color:var(--oro); font-weight:bold; cursor:pointer;">-</button>
+                        <span style="color: white; font-weight: bold; min-width:15px; text-align:center;">${it.cantidad}</span>
+                        <button onclick="cambiarCantidad(${i}, 1)" style="background:none; border:none; color:var(--oro); font-weight:bold; cursor:pointer;">+</button>
+                    </div>
+                    <div style="text-align: right; min-width: 70px;">
+                        <span style="font-weight:bold; color:white;">$${(it.precio_venta * it.cantidad).toLocaleString()}</span>
+                    </div>
+                    <button onclick="carrito.splice(${i},1);render()" style="background:none; border:none; color:#ff4444; margin-left: 10px; cursor:pointer;">✕</button>
+                </div>`;
+        });
+
+        const desc = parseFloat(document.getElementById('descuento_valor').value) || 0;
+        const totalFinal = subtotal - desc;
+        document.getElementById('total_venta').innerText = `$${(totalFinal < 0 ? 0 : totalFinal).toLocaleString()}`;
+    }
+
+    async function finalizarVenta() {
+        if (carrito.length === 0) return;
+        
+        const subtotal = carrito.reduce((s, c) => s + (c.precio_venta * c.cantidad), 0);
+        const desc = parseFloat(document.getElementById('descuento_valor').value) || 0;
+        const total = subtotal - desc;
+        const idVenta = "FE-" + Math.floor(Math.random() * 1000000); 
+        
+        const detalles = carrito.map(c => `${c.cantidad}x ${c.nombre} (${c.talle})`).join(", ");
+        const metodo = document.getElementById('metodo_pago').value;
+
+        try {
+            for (const it of carrito) {
+                const prodOriginal = db_local.find(p => p.codigo_barras === it.codigo_barras);
+                await _supabase.from('productos_boutique')
+                    .update({ stock: prodOriginal.stock - it.cantidad })
+                    .eq('codigo_barras', it.codigo_barras);
+            }
+            
+            await _supabase.from('ventas_boutique').insert([{ 
+                detalles: `${idVenta}: ${detalles}` + (desc > 0 ? ` [Desc: -$${desc}]` : ""), 
+                total: total < 0 ? 0 : total, 
+                metodo 
+            }]);
+            
+            Swal.fire({
+                title: 'COBRO EXITOSO',
+                text: `ID de Operación: ${idVenta}`,
+                icon: 'success',
+                showCancelButton: true,
+                confirmButtonText: '📄 Descargar Ticket',
+                cancelButtonText: 'Finalizar',
+                background: '#0a0a0a',
+                color: '#fff',
+                confirmButtonColor: '#630d16',
+                cancelButtonColor: '#333'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    generarTicketPDF(idVenta, [...carrito], total, desc, metodo);
+                }
+            });
+            
+            carrito = []; 
+            document.getElementById('descuento_valor').value = "";
+            render(); 
+            iniciar();
+        } catch (e) {
+            alert("Error procesando venta");
+        }
+    }
+
+    function generarTicketPDF(id, items, total, desc, metodo) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ unit: 'mm', format: [80, 150] }); 
+        
+        doc.setFontSize(12);
+        doc.text("THE FASHION EMPIRE", 40, 10, { align: "center" });
+        doc.setFontSize(8);
+        doc.text(`Operación: ${id}`, 10, 18);
+        doc.text(`Fecha: ${new Date().toLocaleString()}`, 10, 22);
+        doc.text("------------------------------------------", 10, 26);
+        
+        let y = 32;
+        items.forEach(it => {
+            doc.text(`${it.cantidad}x ${it.nombre}`, 10, y);
+            doc.text(`$${(it.precio_venta * it.cantidad).toLocaleString()}`, 70, y, { align: "right" });
+            y += 5;
+        });
+        
+        doc.text("------------------------------------------", 10, y);
+        y += 5;
+        if(desc > 0) {
+            doc.text(`Descuento VIP: -$${desc.toLocaleString()}`, 10, y);
+            y += 5;
+        }
+        doc.setFontSize(10);
+        doc.text(`TOTAL FINAL: $${total.toLocaleString()}`, 10, y);
+        doc.setFontSize(8);
+        doc.text(`Metodo Pago: ${metodo}`, 10, y + 5);
+        
+        doc.text("¡Gracias por su compra Real!", 40, y + 15, { align: "center" });
+        doc.text("Conserve este ticket para cambios.", 40, y + 19, { align: "center" });
+        
+        doc.save(`Ticket_${id}.pdf`);
+    }
+
+    window.onload = iniciar;
+</script>
+</body>
+</html>
