@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#630d16">
     <link rel="manifest" href="manifest.json">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="fashion.png">
     <title>Admin Gold - The Fashion Empire</title>
     
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -19,50 +16,49 @@
     
     <style>
         :root { --imperial: #630d16; --oro: #d4af37; --fondo: #0a0a0a; --tarjeta: #1a1a1a; --texto: #f4f4f4; --verde: #2ecc71; --rojo: #e74c3c; --plata: #c0c0c0; --alerta: #f39c12; }
-        body { font-family: 'Montserrat', sans-serif; background: var(--fondo); color: var(--texto); margin: 0; padding: 15px; display: none; /* Se muestra tras el PIN */ }
-        h2 { font-family: 'Playfair Display', serif; color: var(--oro); text-align: center; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px;}
         
+        /* IMPORTANTE: Eliminamos display:none y usamos opacidad controlada por JS */
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            background: var(--fondo); 
+            color: var(--texto); 
+            margin: 0; 
+            padding: 15px;
+            opacity: 0; 
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        h2 { font-family: 'Playfair Display', serif; color: var(--oro); text-align: center; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px;}
         .alert-console { background: rgba(243, 156, 18, 0.1); border: 1px solid var(--alerta); border-radius: 8px; padding: 10px; margin-bottom: 15px; display: none; }
         .alert-item { color: var(--alerta); font-size: 0.85rem; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
-
         .grid-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 15px; }
         .card { background: var(--tarjeta); padding: 20px; border-radius: 12px; border-top: 4px solid var(--imperial); margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-        
         label { color: var(--oro); font-size: 0.75rem; font-weight: bold; text-transform: uppercase; display: block; margin-bottom: 5px; }
         .val { font-size: 1.2rem; font-weight: bold; display: block; }
-        
         input, select { width: 100%; padding: 12px; margin-bottom: 15px; background: #222; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
         .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        
         .btn { width: 100%; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; text-transform: uppercase; font-size: 0.8rem; transition: 0.3s; margin-bottom: 8px; }
         .btn-save { background: var(--imperial); color: white; box-shadow: 0 4px 10px rgba(128,0,32,0.3); }
         .btn-pdf { background: transparent; border: 1px solid var(--oro); color: var(--oro); }
         .btn-excel { background: #1D6F42; color: white; }
-
         table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #111; border-radius: 8px; overflow: hidden; }
         th { text-align: left; color: var(--oro); border-bottom: 2px solid var(--imperial); padding: 12px 10px; font-size: 0.75rem; }
         td { padding: 10px; border-bottom: 1px solid #222; font-size: 0.8rem; }
-        
         .main-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         @media (max-width: 850px) { .main-layout { grid-template-columns: 1fr; } }
-
         .btn-anular { background: none; border: 1px solid var(--rojo); color: var(--rojo); padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; }
-        
-        /* Ocultar elementos para STAFF */
         .admin-only { display: none; }
     </style>
 </head>
 <body>
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <button onclick="window.location.href='index.html'" style="background:#333; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold; font-size: 0.7rem;">
-            🏠 VOLVER A VENTAS
-        </button>
+        <button onclick="window.location.href='index.html'" style="background:#333; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold; font-size: 0.7rem;">🏠 VENTAS</button>
         <span id="roleBadge" style="color: var(--oro); font-size: 0.7rem; font-weight: bold; border: 1px solid var(--oro); padding: 5px 10px; border-radius: 12px;">ROL: -</span>
     </div>
 
     <header style="text-align: center; margin-bottom: 15px;">
-        <img src="fashion.png" alt="Logo" style="width: 100px; margin-bottom: 10px;">
+        <img src="fashion.png" alt="Logo" style="width: 80px; margin-bottom: 10px;">
         <h2>The Fashion Empire</h2>
         <p style="color: var(--plata); font-style: italic; margin: 0; font-size: 0.8rem;">Royal Inventory & Sales Control</p>
     </header>
@@ -116,13 +112,13 @@
                     <div><label>Stock</label><input type="number" id="sto" placeholder="Cant."></div>
                     <div><label>ID / Código</label><input type="text" id="cod" placeholder="Código"></div>
                 </div>
-                <button class="btn btn-save" onclick="guardarPrenda()">💾 GUARDAR EN INVENTARIO</button>
+                <button class="btn btn-save" onclick="guardarPrenda()">💾 GUARDAR</button>
                 <button class="btn btn-pdf admin-only" onclick="generarPDF()">📄 REPORTE PDF</button>
-                <button class="btn btn-excel admin-only" onclick="exportarExcel()">📊 EXPORTAR VENTAS EXCEL</button>
+                <button class="btn btn-excel admin-only" onclick="exportarExcel()">📊 EXCEL VENTAS</button>
             </div>
 
             <div class="card admin-only">
-                <label>📈 Desempeño Semanal ($)</label>
+                <label>📈 Desempeño Semanal</label>
                 <canvas id="graficoVentas" height="150"></canvas>
             </div>
         </div>
@@ -132,15 +128,8 @@
                 <label>🛍️ Historial de Ventas</label>
                 <input type="text" id="buscarVentaID" style="border: 1px solid var(--verde); background:#000;" placeholder="🔍 Buscar Ticket..." onkeyup="filtrarVentas()">
                 <div style="max-height: 380px; overflow-y: auto;">
-                    <table id="tablaVentas">
-                        <thead>
-                            <tr>
-                                <th>HORA/ID</th>
-                                <th>DETALLE</th>
-                                <th>TOTAL</th>
-                                <th class="admin-only">ACCIÓN</th>
-                            </tr>
-                        </thead>
+                    <table>
+                        <thead><tr><th>HORA</th><th>DETALLE</th><th>TOTAL</th><th class="admin-only">ACCIÓN</th></tr></thead>
                         <tbody id="cuerpoVentas"></tbody>
                     </table>
                 </div>
@@ -150,14 +139,7 @@
                 <label>📦 Inventario Imperial</label>
                 <div style="max-height: 500px; overflow-y: auto;">
                     <table id="tablaInv">
-                        <thead>
-                            <tr>
-                                <th>DETALLE</th>
-                                <th style="text-align: center;">STOCK</th>
-                                <th style="text-align: right;">VENTA</th>
-                                <th style="text-align: center;">ACCIONES</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>DETALLE</th><th style="text-align: center;">STOCK</th><th style="text-align: right;">VENTA</th><th></th></tr></thead>
                         <tbody id="cuerpoTabla"></tbody>
                     </table>
                 </div>
@@ -175,38 +157,36 @@
     let graficoInstance = null;
     let currentRole = "";
 
-    // --- SEGURIDAD ---
     async function checkAccess() {
+        // Hacemos el body visible para que no se quede negro
+        document.body.style.opacity = "1";
+
         const { value: pin } = await Swal.fire({
             title: 'ACCESO REAL',
             input: 'password',
             inputLabel: 'Ingrese PIN de Seguridad',
-            inputPlaceholder: '****',
             background: '#0a0a0a',
             color: '#fff',
             confirmButtonColor: '#630d16',
             allowOutsideClick: false
         });
 
-        if (pin === '2026') {
-            currentRole = "DUEÑO";
-            document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
-            document.body.style.display = 'block';
-        } else if (pin === '1234') {
-            currentRole = "STAFF";
-            document.body.style.display = 'block';
+        if (pin === '2026' || pin === '1234') {
+            currentRole = (pin === '2026') ? "DUEÑO" : "STAFF";
+            if(currentRole === "DUEÑO") {
+                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+            }
+            document.getElementById('roleBadge').innerText = `ROL: ${currentRole}`;
+            cargarTodo();
         } else {
-            Swal.fire('Error', 'PIN Incorrecto', 'error').then(() => window.location.href = 'index.html');
+            window.location.href = 'index.html';
         }
-        document.getElementById('roleBadge').innerText = `ROL: ${currentRole}`;
-        cargarTodo();
     }
 
     async function cargarTodo() {
         const { data: productos } = await _supabase.from('productos_boutique').select('*').order('created_at', { ascending: false });
         todosLosProductos = productos || [];
         renderizarTabla(todosLosProductos);
-        actualizarMetricas(todosLosProductos);
         actualizarAlertas(todosLosProductos);
         cargarVentasYGrafico();
     }
@@ -223,41 +203,21 @@
                         <strong>${item.nombre}</strong><br><small style="color:var(--plata)">${item.talle} | ${item.color}</small>
                     </td>
                     <td style="text-align: center;">
-                        <span style="color: ${stockBajo ? 'var(--rojo)' : 'var(--verde)'}; font-weight: bold; font-size:1.1rem;">${item.stock}</span>
+                        <span style="color: ${stockBajo ? 'var(--rojo)' : 'var(--verde)'}; font-weight: bold;">${item.stock}</span>
                         <div style="display:flex; gap:3px; justify-content:center; margin-top:5px;">
-                            <button onclick="ajustarStock('${item.codigo_barras}', ${item.stock - 1})" style="background:#333;color:white;border:none;padding:5px 8px;border-radius:4px;cursor:pointer;">-</button>
-                            <button onclick="ajustarStock('${item.codigo_barras}', ${item.stock + 1})" style="background:#333;color:white;border:none;padding:5px 8px;border-radius:4px;cursor:pointer;">+</button>
+                            <button onclick="ajustarStock('${item.codigo_barras}', ${item.stock - 1})" style="background:#333;color:white;border:none;padding:2px 6px;border-radius:4px;">-</button>
+                            <button onclick="ajustarStock('${item.codigo_barras}', ${item.stock + 1})" style="background:#333;color:white;border:none;padding:2px 6px;border-radius:4px;">+</button>
                         </div>
                     </td>
                     <td style="text-align: right; font-weight: bold; color: var(--oro);">$${item.precio_venta.toLocaleString()}</td>
-                    <td style="text-align: center;">
-                        <button onclick="eliminarProducto('${item.codigo_barras}', '${item.nombre}')" style="background:none;border:none;color:var(--rojo);cursor:pointer;font-size:1.1rem;">🗑️</button>
-                    </td>
+                    <td><button onclick="eliminarProducto('${item.codigo_barras}', '${item.nombre}')" style="background:none;border:none;color:var(--rojo);cursor:pointer;">🗑️</button></td>
                 </tr>`;
         });
-    }
-
-    function actualizarAlertas(productos) {
-        const alertConsole = document.getElementById('alertConsole');
-        const alertList = document.getElementById('alertList');
-        const criticos = productos.filter(p => p.stock <= 2);
-        
-        if (criticos.length > 0) {
-            alertConsole.style.display = 'block';
-            alertList.innerHTML = criticos.map(p => `
-                <div class="alert-item">
-                    <span>${p.stock === 0 ? '❌ AGOTADO:' : '⚠️ BAJO STOCK:'}</span>
-                    <strong>${p.nombre} (${p.talle})</strong> - Solo quedan ${p.stock} unidades.
-                </div>
-            `).join('');
-        } else {
-            alertConsole.style.display = 'none';
-        }
+        actualizarMetricas(lista);
     }
 
     async function cargarVentasYGrafico() {
-        const { data: ventas, error } = await _supabase.from('ventas_boutique').select('*').order('created_at', { ascending: false });
-        if (error) return;
+        const { data: ventas } = await _supabase.from('ventas_boutique').select('*').order('created_at', { ascending: false });
         todasLasVentas = ventas || [];
         procesarVentas(todasLasVentas);
         if(currentRole === "DUEÑO") cargarGrafico(todasLasVentas);
@@ -267,53 +227,21 @@
         const hoy = new Date().toISOString().split('T')[0];
         const tbody = document.getElementById('cuerpoVentas');
         let sumaHoy = 0;
-        let conteoProductos = {};
         tbody.innerHTML = "";
         
         ventas.forEach(v => {
             if (v.created_at.startsWith(hoy)) sumaHoy += v.total;
-            const partes = v.detalles.split(', ');
-            partes.forEach(p => {
-                const nombre = p.split('x ')[1] || p;
-                if(nombre && !nombre.includes('FE-')) {
-                    const soloNombre = nombre.split(' (')[0];
-                    conteoProductos[soloNombre] = (conteoProductos[soloNombre] || 0) + 1;
-                }
-            });
-            renderFilaVenta(v, tbody);
+            const hora = new Date(v.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            tbody.innerHTML += `<tr>
+                <td><small>${hora}</small></td>
+                <td><small>${v.detalles}</small></td>
+                <td style="font-weight:bold; color:var(--verde)">$${v.total.toLocaleString()}</td>
+                <td class="${currentRole === 'DUEÑO' ? '' : 'admin-only'}">
+                    <button class="btn-anular" onclick="anularVenta('${v.id}', '${v.detalles}')">Anular</button>
+                </td>
+            </tr>`;
         });
-
         document.getElementById('ventasDia').innerText = `$${sumaHoy.toLocaleString()}`;
-        const top = Object.entries(conteoProductos).sort((a,b) => b[1] - a[1])[0];
-        document.getElementById('topProducto').innerText = top ? top[0] : "Sin datos";
-    }
-
-    function renderFilaVenta(v, container) {
-        const hora = new Date(v.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        container.innerHTML += `<tr>
-            <td><small>${hora}</small></td>
-            <td><small>${v.detalles}</small></td>
-            <td style="font-weight:bold; color:var(--verde)">$${v.total.toLocaleString()}</td>
-            <td class="${currentRole === 'DUEÑO' ? '' : 'admin-only'}"><button class="btn-anular" onclick="anularVenta('${v.id}', '${v.detalles}')">Anular</button></td>
-        </tr>`;
-    }
-
-    async function anularVenta(id, detalles) {
-        if (!confirm("¿Seguro que deseas ANULAR esta venta? El stock se restaurará.")) return;
-        const items = detalles.split(', ');
-        for (const item of items) {
-            if (item.includes('x ')) {
-                const cant = parseInt(item.split('x ')[0]);
-                const matchCodigo = item.match(/FE-\d+/); // Busca el código generado
-                if (matchCodigo) {
-                    const codigo = matchCodigo[0];
-                    const { data: p } = await _supabase.from('productos_boutique').select('stock').eq('codigo_barras', codigo).single();
-                    if (p) await _supabase.from('productos_boutique').update({ stock: p.stock + cant }).eq('codigo_barras', codigo);
-                }
-            }
-        }
-        await _supabase.from('ventas_boutique').delete().eq('id', id);
-        cargarTodo();
     }
 
     async function guardarPrenda() {
@@ -327,8 +255,9 @@
             precio_venta: parseFloat(document.getElementById('pre').value) || 0,
             stock: parseInt(document.getElementById('sto').value) || 0
         };
-        const { error } = await _supabase.from('productos_boutique').upsert(datos);
-        if (error) alert(error.message); else { cargarTodo(); limpiarInputs(); }
+        await _supabase.from('productos_boutique').upsert(datos);
+        cargarTodo();
+        ['nom','talle','color','cos','pre','sto','cod'].forEach(id => document.getElementById(id).value = "");
     }
 
     async function ajustarStock(codigo, nuevo) {
@@ -337,49 +266,11 @@
         cargarTodo();
     }
 
-    function exportarExcel() {
-        let csv = "\uFEFFID;Detalles;Total;Metodo;Fecha\n";
-        todasLasVentas.forEach(v => { csv += `${v.id};"${v.detalles}";${v.total};${v.metodo};${v.created_at}\n`; });
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "Ventas_Fashion_Empire.csv";
-        link.click();
-    }
-
-    function generarPDF() {
-        const { jsPDF } = window.jspdf; const doc = new jsPDF();
-        doc.setFontSize(18); doc.text("REPORTE DE INVENTARIO - THE FASHION EMPIRE", 105, 15, { align: "center" });
-        const filas = todosLosProductos.map(p => [p.nombre, p.talle, p.color, p.stock, `$${p.precio_venta}`]);
-        doc.autoTable({ head: [['Producto', 'Talle', 'Color', 'Stock', 'Precio']], body: filas, startY: 25, headStyles: { fillColor: [99, 13, 22] } });
-        doc.save("Inventario_Empire.pdf");
-    }
-
-    function filtrarVentas() {
-        const q = document.getElementById('buscarVentaID').value.toLowerCase();
-        const tbody = document.getElementById('cuerpoVentas');
-        tbody.innerHTML = "";
-        todasLasVentas.filter(v => v.detalles.toLowerCase().includes(q)).forEach(v => renderFilaVenta(v, tbody));
-    }
-
-    function limpiarInputs() { ['nom','talle','color','cos','pre','sto','cod'].forEach(id => document.getElementById(id).value = ""); }
-    
-    function prepararEdicion(codigo) {
-        const p = todosLosProductos.find(i => i.codigo_barras === codigo);
-        if (p) {
-            document.getElementById('nom').value = p.nombre; document.getElementById('talle').value = p.talle;
-            document.getElementById('color').value = p.color; document.getElementById('cat').value = p.categoria;
-            document.getElementById('cos').value = p.precio_costo; document.getElementById('pre').value = p.precio_venta;
-            document.getElementById('sto').value = p.stock; document.getElementById('cod').value = p.codigo_barras;
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-    }
-
-    async function eliminarProducto(codigo, nombre) {
-        if (confirm(`¿Eliminar "${nombre}" del sistema?`)) {
-            await _supabase.from('productos_boutique').delete().eq('codigo_barras', codigo);
-            cargarTodo();
-        }
+    function actualizarAlertas(productos) {
+        const alertList = document.getElementById('alertList');
+        const criticos = productos.filter(p => p.stock <= 2);
+        document.getElementById('alertConsole').style.display = criticos.length ? 'block' : 'none';
+        alertList.innerHTML = criticos.map(p => `<div class="alert-item"><span>⚠️</span> <strong>${p.nombre}</strong> - Quedan ${p.stock}</div>`).join('');
     }
 
     function actualizarMetricas(data) {
@@ -390,22 +281,18 @@
     }
 
     async function cargarGrafico(ventas) {
-        const montos = [0, 0, 0, 0, 0, 0, 0];
-        const etiquetas = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-        ventas.forEach(v => {
-            const d = new Date(v.created_at).getDay();
-            montos[d] += v.total;
-        });
+        const montos = [0,0,0,0,0,0,0];
+        ventas.forEach(v => { montos[new Date(v.created_at).getDay()] += v.total; });
         const ctx = document.getElementById('graficoVentas').getContext('2d');
         if (graficoInstance) graficoInstance.destroy();
         graficoInstance = new Chart(ctx, {
             type: 'bar',
-            data: { labels: etiquetas, datasets: [{ label: 'Ventas $', data: montos, backgroundColor: '#630d16', borderRadius: 5 }] },
-            options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#222' } } } }
+            data: { labels: ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'], datasets: [{ data: montos, backgroundColor: '#630d16' }] },
+            options: { plugins: { legend: { display: false } } }
         });
     }
 
-    window.onload = checkAccess;
+    window.onload = () => setTimeout(checkAccess, 500);
 </script>
 </body>
 </html>
